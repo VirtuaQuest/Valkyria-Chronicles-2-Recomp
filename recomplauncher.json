@@ -14,18 +14,18 @@
       "label": "The decrypted game executable from your own disc: ULUS10515_EBOOT.BIN, which PPSSPP saves when \"Dump decrypted EBOOT.BIN on game boot\" (Settings > System > Developer tools) is on and you start the game once. It is in PPSSPP's memory stick folder under PSP/SYSTEM/DUMP. This project contains no PSP keys, so it can't read the encrypted one on the disc.",
       "role": "game",
       "destination": "ULUS10515_EBOOT.BIN",
-      "formats": [{ "type": "file", "extensions": [".bin"] }]
+      "formats": [{ "type": "file", "extensions": ["bin"] }]
     }
   ],
   "prepare": {
     "program": ["VC2Launcher.exe"],
-    "args": ["--prepare", "--iso", "{game}", "--out", "{install}"],
+    "args": ["--prepare", "--game", "{game}", "--out", "{install}"],
     "label": "Recompiling the game from your disc (needs the free Microsoft C++ Build Tools)",
     "timeout": 3600
   },
   "start": {
     "program": ["VC2Launcher.exe"],
-    "args": ["--play", "--iso", "{game}", "--out", "{install}"]
+    "args": ["--play", "--game", "{game}", "--out", "{install}"]
   },
   "config": [
     {
