@@ -321,6 +321,9 @@ bool Builder::runStages() {
         std::string err;
         if (!installDump(dump, out, err)) return fail(err);
         log(LogLevel::Good, "Decrypted executable OK: " + pathUtf8(dump.path));
+        if (!dump.known)
+            log(LogLevel::Warn, "It isn't the exact copy this recomp was tested with (another dump or printing of the "
+                                "disc). The game is built from it as it is; the 60 FPS gameplay option stays off.");
     }
 
     // ---------------------------------------------------------------- load + analyze + translate

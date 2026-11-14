@@ -17,6 +17,7 @@ class IsoImage;
 struct ModuleRead {
     bool ok = false;
     bool fromDump = false;          // read from the player's decrypted copy instead of the disc
+    bool known = true;              // the exact executable the profile was made from (its SHA-1)
     std::filesystem::path dumpPath; // the copy used
     std::string error;              // user-facing reason when !ok
 };
@@ -25,9 +26,12 @@ struct ModuleRead {
 bool moduleNeedsDump(IsoImage& iso, const GameModuleSpec& spec);
 
 // Checks a decrypted copy against the disc's encrypted module: an ELF, trimmed to the size in the disc's
-// header (PPSSPP writes a little more), with the expected SHA-1. On success `elf` holds the trimmed ELF.
+// header (PPSSPP writes a little more). The expected SHA-1 identifies the exact copy the profile was made
+// from; another copy of the same module (the name in the disc's header matches the ELF's) is accepted
+// with *known = false, as discs of other dumps or printings may differ. On success `elf` holds the
+// trimmed ELF.
 bool checkModuleDump(IsoImage& iso, const GameModuleSpec& spec, const std::filesystem::path& dump, Bytes& elf,
-                     std::string& error);
+                     std::string& error, bool* known = nullptr);
 
 // Reads a module as an ELF: from the disc, or for encrypted ones from spec.dumpName in the first of
 // `dumpDirs` that has a valid copy.

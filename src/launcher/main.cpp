@@ -2,6 +2,7 @@
 //   VC2Launcher.exe --version                         build information (version, commit, date, compiler)
 //   VC2Launcher.exe                                   GUI
 //   VC2Launcher.exe --iso <path> --out <dir> --build  headless recompile with console progress
+//   (--game <path> is the same as --iso; the disc image may be .iso or .cso)
 //   --dump <file>: the decrypted EBOOT.BIN dumped from the disc with PPSSPP (ULUS10515_EBOOT.BIN); found
 //   automatically in the install folder, next to the disc image or in PPSSPP's dump folder otherwise
 // Options: --jobs N, --rebuild (ignore object cache), --verbose (print every compiler line)
@@ -234,7 +235,7 @@ void usage() {
     attachConsole();
     printf(
         "VC2Launcher.exe                                    start the GUI\n"
-        "VC2Launcher.exe --iso <file> --out <dir> --build   recompile headless\n"
+        "VC2Launcher.exe --iso <file> --out <dir> --build   recompile headless (--game <file> works as --iso)\n"
         "VC2Launcher.exe --iso <file> --out <dir> --prepare recompile headless, RecompLauncher progress lines\n"
         "VC2Launcher.exe --iso <file> --out <dir> --play    start the game built in <dir> and wait for it\n"
         "VC2Launcher.exe --version                          print the build information\n"
@@ -257,7 +258,7 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
         std::string a = argv[i];
         auto next = [&]() -> std::string { return i + 1 < argc ? std::string(argv[++i]) : std::string(); };
-        if (a == "--iso") bo.iso = go.iso = pathFromUtf8(next());
+        if (a == "--iso" || a == "--game") bo.iso = go.iso = pathFromUtf8(next());
         else if (a == "--out") bo.outDir = go.out = pathFromUtf8(next());
         else if (a == "--dump") bo.dump = go.dump = pathFromUtf8(next());
         else if (a == "--build") build = true;

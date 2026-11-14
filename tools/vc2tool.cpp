@@ -3,6 +3,7 @@
 //   vc2tool decrypt <iso> <disc path> <out.elf>   (copies the module's ELF out: a plain one from the disc,
 //                                                   an encrypted one from the player's PPSSPP dump)
 //   vc2tool imports <iso>
+//   vc2tool image   <iso|cso> <out.iso>                (writes the uncompressed image, e.g. to check a .cso)
 // Encrypted modules (EBOOT.BIN) are read from their decrypted copies (ULUS10515_EBOOT.BIN) in the folder
 // VC2_DUMPS names, or the current folder.
 #include <cstdio>
@@ -41,6 +42,21 @@ int main(int argc, char** argv) {
     if (!iso.open(argv[2], &err)) {
         fprintf(stderr, "open failed: %s\n", err.c_str());
         return 1;
+    }
+    if (cmd == "image") {
+        if (argc < 4) return usage();
+        std::ofstream out(argv[3], std::ios::binary);
+        Bytes buf(1 << 20);
+        for (u64 at = 0; at < iso.totalSize(); at += buf.size()) {
+            const size_t n = (size_t)std::min<u64>(buf.size(), iso.totalSize() - at);
+            if (!iso.readBytes(at, buf.data(), n)) {
+                fprintf(stderr, "read failed at %llu\n", (unsigned long long)at);
+                return 1;
+            }
+            out.write((const char*)buf.data(), (std::streamsize)n);
+        }
+        printf("wrote %llu bytes (%s)\n", (unsigned long long)iso.totalSize(), iso.compressed() ? "from CSO" : "plain");
+        return 0;
     }
     if (cmd == "info") {
         Bytes sfo;

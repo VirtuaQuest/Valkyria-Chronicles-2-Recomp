@@ -17,7 +17,8 @@ of its executable, dumped by the user with PPSSPP) on their machine.
 
 ## 1. Disc and executable handling (`src/common`, `src/crypto`, `src/loader`)
 
-* `iso9660.*` reads the UMD image directly; nothing is extracted to disk.
+* `iso9660.*` reads the UMD image directly, `.iso` or compressed `.cso` (CISO v1: an index of 2 KB
+  blocks, each raw DEFLATE or stored, decoded by `inflate.*`); nothing is extracted to disk.
 * `prx_decrypt.*` takes plain executables from the disc and recognises encrypted `~PSP` ones.
   The project contains no console keys or decryption.
 * `game_module.*` reads each module the profile names. The disc's `EBOOT.BIN` is encrypted,
@@ -26,7 +27,10 @@ of its executable, dumped by the user with PPSSPP) on their machine.
   on). The copy is trimmed to the ELF size in the disc's `~PSP` header (PPSSPP writes a few
   hundred bytes more) and must match the SHA-1 in the profile. The launcher finds it (its own
   path, the install folder, next to the ISO, PPSSPP's dump folder), checks it and copies it
-  into the install folder, where the game reads it at boot.
+  into the install folder, where the game reads it at boot. A copy with another SHA-1 is accepted
+  when its module name matches the disc's `~PSP` header (other dumps or printings may differ); the
+  game is built from it as it is, and the engine hooks, whose addresses belong to the known copy,
+  are switched off.
 * Each module's SHA-1 (Windows CNG) is embedded in the generated code and re-checked at boot,
   so a different disc revision can never run against mismatched translated code.
 * `elf.*` loads the relocatable PRX: applies `R_MIPS_32/26/HI16/LO16` relocations, parses

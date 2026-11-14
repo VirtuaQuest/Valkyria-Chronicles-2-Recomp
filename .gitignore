@@ -30,7 +30,7 @@ gen/
 # Runtime / launcher user files
 memstick/
 vc2recomp.ini
-vc2recomp.log
+vc2recomp*.log
 game.ini
 launcher.ini
 run.out

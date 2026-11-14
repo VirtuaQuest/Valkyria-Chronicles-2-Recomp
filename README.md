@@ -16,7 +16,8 @@ and an optional 60 FPS mode for battles.
 
 ## How to play
 
-1. Dump your UMD to an `.iso` (for example with a PSP running custom firmware).
+1. Dump your UMD to an `.iso` (for example with a PSP running custom firmware). Compressed `.cso`
+   images work too; CHD images don't yet (convert them to `.iso`).
 2. Make a decrypted copy of the game executable with [PPSSPP](https://www.ppsspp.org) (free). The
    executable on the disc is encrypted, and this project contains no PSP keys to read it:
    1. In PPSSPP, open **Settings > System > Developer tools** and turn on **Dump decrypted
@@ -26,7 +27,8 @@ and an optional 60 FPS mode for battles.
    3. The file is `ULUS10515_EBOOT.BIN` in PPSSPP's memory stick folder, under `PSP/SYSTEM/DUMP`
       (`Documents\PPSSPP\PSP\SYSTEM\DUMP` for an installed PPSSPP). The launcher finds it there,
       or next to your `.iso`; otherwise pick it with **Browse...**. It checks that the file is the
-      one from your disc before using it.
+      one from your disc before using it. (A dump from another copy of the disc that differs from the
+      one this recomp was tested with is accepted too, with the 60 FPS option turned off for it.)
 3. Install the free **Visual Studio 2022 Build Tools** with the *Desktop development with C++*
    workload. The launcher uses it to compile the translated game.
 4. Download the latest `VC2Recompiled-<version>-Windows-x64.zip` from
@@ -80,7 +82,7 @@ rebound in `vc2recomp.ini` or the launcher's settings tab.
 | `ULUS10515_EBOOT.BIN` | the decrypted executable you dumped with PPSSPP (read at every start) |
 | `vc2runtime.dll` | the PSP system re-implementation the game runs on |
 | `vc2recomp.ini` | settings (also edited by the launcher's Settings tab) |
-| `vc2recomp.log` | log of the last run; attach it to bug reports |
+| `vc2recomp.log` | log of the last run (`vc2recomp.1.log` to `.3.log`: the three before); attach it to bug reports |
 | `memstick/PSP/SAVEDATA/` | your saves |
 
 ## Build information
@@ -107,9 +109,13 @@ cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
+Command line: `VC2Launcher.exe --game <disc image> --out <install folder> --build` recompiles without
+the window (`--iso` is the same as `--game`; `--dump <file>` names the PPSSPP dump; `--help` lists
+the rest).
+
 Outputs in `build/bin/`: `VC2Launcher.exe`, `vc2runtime.dll`, `sdk/` (import library and headers
 the launcher compiles against) and `vc2tool.exe` (developer CLI: `info`, `decrypt` (extracts a
-module's ELF), `imports`, `analyze`, `dis`, `recomp`; it reads `ULUS10515_EBOOT.BIN` from the
+module's ELF), `image` (writes the uncompressed image of a `.cso`), `imports`, `analyze`, `dis`, `recomp`; it reads `ULUS10515_EBOOT.BIN` from the
 folder `VC2_DUMPS` names, or the current folder).
 
 `tools/package.ps1 -BuildDir build -Version v1.2.3` writes the release zip

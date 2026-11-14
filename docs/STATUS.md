@@ -126,6 +126,19 @@ final window image, before the overlay):
   off it presented 60. `VC2_FPS_STATS` logs the present rate and the presentation thread's
   timings for this.
 
+### Disc images and dumps (2026-11-14)
+
+* `.cso` images (CISO v1) are read directly. A CSO made from the ISO (528,192 blocks, 215,347
+  stored, the rest DEFLATE) decodes to a byte-identical image (`vc2tool image`), and the game built
+  and played from it (movies with sound, battle map, steady 30/60 FPS, no audio underruns).
+* The disc image used for development has the size of the Redump dump of ULUS-10515
+  (1,081,737,216 bytes) but not its CRC-32 (c522b8f0 against ECE8D4F5), so its `EBOOT.BIN` may not
+  be byte-identical to every disc. A dump whose SHA-1 differs from the profile's is therefore
+  accepted when it is the same module (the module name in the disc's `~PSP` header matches the
+  ELF's): tested with a one-byte change (accepted, with a warning and the 60 FPS hook off) and with
+  another module (refused, exit code 24 from `--prepare`).
+* The game keeps the logs of its last runs: `vc2recomp.log` and `vc2recomp.1.log` to `.3.log`.
+
 ### Presentation thread (2026-11-13)
 
 * The final image (game + overlay) is drawn into one of three textures shared with a second

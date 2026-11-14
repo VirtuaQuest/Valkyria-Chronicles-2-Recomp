@@ -8,6 +8,10 @@ using namespace vc2rt;
 
 namespace {
 
+// Hook addresses belong to the exact executable the profile was made from; with another copy of the module
+// (another dump or printing) the code at them may differ, so the hooks do nothing.
+bool g_knownExecutable = true;
+
 // Engine "set frame rate" (a0 = vblanks per rendered frame; Valkyria Chronicles II 0x08bd320c, the same
 // function as Valkyria Chronicles III's 0x08bc3ebc). The engine derives its float time step from the same
 // value, and game logic scales by that step, so requesting 1 instead of 2 renders 30 FPS scenes at 60 FPS
@@ -25,7 +29,12 @@ void setFrameRate(PspContext* c) {
 
 }  // namespace
 
+namespace vc2rt {
+void setKnownExecutable(bool known) { g_knownExecutable = known; }
+}  // namespace vc2rt
+
 extern "C" PSP_API void psp_hook(PspContext* c, u32 addr) {
+    if (!g_knownExecutable) return;
     switch (addr) {
         case 0x08bd320c: setFrameRate(c); break;
         default: break;

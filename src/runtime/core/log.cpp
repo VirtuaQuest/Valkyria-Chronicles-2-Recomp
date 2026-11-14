@@ -12,7 +12,18 @@ static FILE* g_logFile = nullptr;
 static LogLevel g_level = LogLevel::Info;
 static std::mutex g_logMtx;
 
+// The last runs' logs are kept next to it: vc2recomp.log is this run, vc2recomp.1.log the one before,
+// up to vc2recomp.3.log.
 void logInit(const std::filesystem::path& file) {
+    constexpr int kKeep = 3;
+    std::error_code ec;
+    auto older = [&](int n) {
+        auto p = file;
+        return p.replace_extension(std::to_string(n) + file.extension().string());
+    };
+    std::filesystem::remove(older(kKeep), ec);
+    for (int n = kKeep - 1; n >= 1; n--) std::filesystem::rename(older(n), older(n + 1), ec);
+    std::filesystem::rename(file, older(1), ec);
     g_logFile = _wfopen(file.c_str(), L"w");
 }
 void setLogLevel(LogLevel l) { g_level = l; }
@@ -35,7 +46,12 @@ void logMsg(LogLevel lvl, const char* tag, const char* fmt, ...) {
     double t = hostMicros() / 1e6;
     if (g_logFile) {
         fprintf(g_logFile, "[%9.3f] %s %-8s %s\n", t, names[(int)lvl], tag, buf);
-        if (lvl >= LogLevel::Warn) fflush(g_logFile);
+        // Written out at least once a second, so a game that is killed (or hangs) keeps its log.
+        static double lastFlush = 0;
+        if (lvl >= LogLevel::Warn || t - lastFlush >= 1.0) {
+            fflush(g_logFile);
+            lastFlush = t;
+        }
     }
     fprintf(stderr, "[%9.3f] %s %-8s %s\n", t, names[(int)lvl], tag, buf);
 }

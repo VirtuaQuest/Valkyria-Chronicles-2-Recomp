@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "../crypto/prx_decrypt.h"
+#include "../loader/elf.h"
 #include "iso9660.h"
 
 namespace vc2 {
@@ -27,7 +28,7 @@ bool moduleNeedsDump(IsoImage& iso, const GameModuleSpec& spec) {
 }
 
 bool checkModuleDump(IsoImage& iso, const GameModuleSpec& spec, const std::filesystem::path& dump, Bytes& elf,
-                     std::string& error) {
+                     std::string& error, bool* known) {
     u8 head[0x40];
     if (!readHead(iso, spec, head) || memcmp(head, "~PSP", 4) != 0) {
         error = std::string(spec.discPath) + " on this disc is not an encrypted executable.";
@@ -51,10 +52,18 @@ bool checkModuleDump(IsoImage& iso, const GameModuleSpec& spec, const std::files
         error = dump.filename().string() + " is not a decrypted executable (no ELF header).";
         return false;
     }
+    if (known) *known = true;
     if (spec.sha1 && sha1Hex(elf) != spec.sha1) {
-        error = dump.filename().string() + " is not the decrypted " + spec.discPath +
-                " of this disc (its contents don't match).";
-        return false;
+        // Not the copy the profile was made from: the module itself must still be the disc's.
+        const std::string discName((const char*)head + 0x0A, strnlen((const char*)head + 0x0A, 28));
+        LoadedModule m;
+        std::string err;
+        if (!loadPspElf(elf, spec.base, m, &err) || m.name != discName) {
+            error = dump.filename().string() + " is not the decrypted " + spec.discPath +
+                    " of this disc (its contents don't match).";
+            return false;
+        }
+        if (known) *known = false;
     }
     return true;
 }
@@ -82,7 +91,7 @@ ModuleRead readGameModule(IsoImage& iso, const GameModuleSpec& spec,
         const auto path = dir / spec.dumpName;
         if (!std::filesystem::is_regular_file(path, ec)) continue;
         std::string err;
-        if (checkModuleDump(iso, spec, path, elf, err)) {
+        if (checkModuleDump(iso, spec, path, elf, err, &r.known)) {
             r.ok = r.fromDump = true;
             r.dumpPath = path;
             return r;

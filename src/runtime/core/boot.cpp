@@ -26,6 +26,7 @@ void cpuInit(const Vc2GameImage* img);
 void crashInit(const Vc2GameImage* img);
 void restoreInstallOverlays();
 void watchInit();
+void setKnownExecutable(bool known);
 
 Paths& paths() {
     static Paths p;
@@ -122,6 +123,11 @@ static int boot(const Vc2GameImage* img, int argc, char** argv) {
         vc2::ModuleRead mr = vc2::readGameModule(disc(), spec, {P.exeDir}, elf);
         if (!mr.ok) fatal("%s\n\nRun the launcher again to set up the game.", mr.error.c_str());
         if (mr.fromDump) LOG_INFO("BOOT", "%s from the decrypted copy %s", me.discPath, pathToUtf8(mr.dumpPath).c_str());
+        if (!mr.known) {
+            LOG_WARN("BOOT", "%s is not the copy this recomp was tested with: engine hooks (60 FPS gameplay) are off",
+                     me.discPath);
+            setKnownExecutable(false);
+        }
         if (sha1Of(elf) != me.sha1)
             fatal("%s on this disc does not match the one the game was recompiled from.\nRe-run the launcher.", me.discPath);
         vc2::LoadedModule m;

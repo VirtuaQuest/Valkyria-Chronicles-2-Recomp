@@ -26,6 +26,8 @@ struct DumpCheck {
     bool needed = false;          // the disc has an encrypted module
     bool ok = false;              // a verified copy was found at `path`
     bool missing = false;         // no file was found at all (as opposed to one that was turned down)
+    bool known = true;            // the exact executable the recomp was made with (else the same module from
+                                  // another dump or printing; its engine hooks stay off)
     std::filesystem::path path;
     std::string name;             // the name PPSSPP gives it
     std::string message;          // status for the UI

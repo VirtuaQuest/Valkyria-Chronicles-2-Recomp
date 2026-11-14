@@ -25,8 +25,8 @@ DiscInfo probeDisc(const std::filesystem::path& isoPath) {
     vc2::IsoImage iso;
     std::string err;
     if (!iso.open(isoPath, &err)) {
-        d.error = "This file is not a readable ISO disc image (" + err + ").\nMake sure you selected an .iso dump "
-                  "of your UMD (CSO/CHD compressed images are not supported).";
+        d.error = "This file is not a readable disc image (" + err + ").\nMake sure you selected an .iso or .cso "
+                  "dump of your UMD (CHD images are not supported yet: convert them to .iso).";
         return d;
     }
     d.fileSize = iso.totalSize();
@@ -122,10 +122,10 @@ DumpCheck findDump(const std::filesystem::path& isoPath, const std::filesystem::
         }
         Bytes elf;
         std::string err;
-        if (vc2::checkModuleDump(iso, *spec, c, elf, err)) {
+        if (vc2::checkModuleDump(iso, *spec, c, elf, err, &r.known)) {
             r.ok = true;
             r.path = c;
-            r.message = "Verified: " + pathUtf8(c);
+            r.message = (r.known ? "Verified: " : "Accepted (not the copy this recomp was tested with): ") + pathUtf8(c);
             return r;
         }
         if (firstError.empty()) firstError = err;
